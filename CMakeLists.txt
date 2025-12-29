@@ -11,11 +11,11 @@ add_library(RetCode STATIC ret_code.c)
 add_library(RingBuffer STATIC ring_buffer.c ring_buffer_demo.c)
 target_link_libraries(RingBuffer PRIVATE RetCode)
 
-add_library(SegmentedRingBuffer STATIC 
-    segmented_ring_buffer.c 
-    segmented_ring_buffer_demo.c)
-target_link_libraries(SegmentedRingBuffer PRIVATE RetCode)
+add_library(PortalQueue STATIC 
+    portal_queue.c 
+    portal_queue_demo.c)
+target_link_libraries(PortalQueue PRIVATE RetCode)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE RingBuffer SegmentedRingBuffer)
+target_link_libraries(${PROJECT_NAME} PRIVATE RingBuffer PortalQueue)
 
 install(TARGETS ${PROJECT_NAME} CONFIGURATIONS Debug RELEASE DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
