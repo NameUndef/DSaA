@@ -13,7 +13,7 @@ void RingBuffer_demo()
     printf("Ring buffer demo\n");
     printf("type RB capacity:\n");
 
-    scanf("%u", &capacity);
+    scanf("%zu", &capacity);
 
     RingBuffer ring_buffer;
     ret_code = RingBuffer_init(&ring_buffer, capacity);

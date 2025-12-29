@@ -33,10 +33,10 @@ void print_portal_queue_info(PortalQueue* dest)
     do {
         for (size_t i = 0; i < dest->segment_capacity; i++) {
 
-            headers[0] = (segment == dest->cur_segment_head && i == dest->head)? 'h' : ' ';
-            headers[1] = (segment == dest->cur_segment_tail && i == dest->tail)? 't' : ' ';
-            headers[2] = (segment == dest->segment_portal_src && i == dest->window_size)? 's' : ' ';
-            headers[3] = (segment == dest->segment_portal_dest && i == 0)? 'd' : ' ';
+            headers[1] = (segment == dest->cur_segment_head && i == dest->head)? 'h' : ' ';
+            headers[2] = (segment == dest->cur_segment_tail && i == dest->tail)? 't' : ' ';
+            headers[3] = (segment == dest->segment_portal_src && i == dest->window_size)? 's' : ' ';
+            headers[0] = (segment == dest->segment_portal_dest && i == 0)? 'd' : ' ';
 
             printf("%s", headers);
         }
@@ -65,25 +65,30 @@ void PortalQueue_demo()
     bool reset_popped_values = false;
     int command;
 
+    unsigned int tmp = 0;
+
     printf("Portal Queue demo\n");
 
     printf("type segment capacity:\n");
-    scanf("%u", &segment_capacity);
+    scanf("%zu", &segment_capacity);
 
     printf("type init capacity:\n");
-    scanf("%u", &capacity);
+    scanf("%zu", &capacity);
 
     printf("free empty segments: 0 - no, 1 - yes\n");
-    scanf("%d", &free_empty_segments);
-    free_empty_segments = !!free_empty_segments;
+    tmp = 0;
+    scanf("%u", &tmp);
+    free_empty_segments = !!tmp;
 
     printf("auto increment value: 0 - no, 1 - yes\n");
-    scanf("%d", &auto_increment);
-    auto_increment = !!auto_increment;
+    tmp = 0;
+    scanf("%u", &tmp);
+    auto_increment = !!tmp;
 
     printf("reset popped values: 0 - no, 1 - yes\n");
-    scanf("%d", &reset_popped_values);
-    reset_popped_values = !!reset_popped_values;
+    tmp = 0;
+    scanf("%u", &tmp);
+    reset_popped_values = !!tmp;
 
     PortalQueue portal_queue;
     ret_code = PortalQueue_init(&portal_queue, segment_capacity, capacity, free_empty_segments, reset_popped_values);

@@ -134,6 +134,11 @@ static void PQ_remove_used_segment(PortalQueue* dest, Segment* segment)
     dest->free_segments = segment;
 }
 
+static bool PQ_is_empty(PortalQueue* dest)
+{
+    return dest->cur_segment_head == dest->cur_segment_tail && dest->head == dest->tail && !dest->full && !dest->segment_portal_src;
+}
+
 Errors PortalQueue_init(
     PortalQueue* dest, 
     size_t segment_capacity, 
@@ -245,7 +250,7 @@ Errors PortalQueue_pop(PortalQueue* dest, uint8_t* value)
         return BAD_ARGUMENT_NULL_POINTER;
     }
 
-    if (dest->tail == dest->head && dest->cur_segment_tail == dest->cur_segment_head && !dest->full) {
+    if (PQ_is_empty(dest)) {
         return EMPTY_BUFFER;
     }
 
@@ -260,14 +265,17 @@ Errors PortalQueue_pop(PortalQueue* dest, uint8_t* value)
 
     // tail вернулся в начало сегмента
     // переход может быть либо через портал, либо самый обычный
-    // также освобождается старый сегмент, если там нет head
+    // также освобождается старый сегмент, если там нет head и portal_src/windows_size
+    // portal dest также удаляется, когда tail перешел на него,
+    // чтобы head не создавал сегмент, когда также находится на нем
     if (dest->tail == 0) {
 
         Segment* prev_segment = dest->cur_segment_tail;
 
         dest->cur_segment_tail = is_on_portal? dest->segment_portal_dest : dest->cur_segment_tail->next;
+        dest->segment_portal_dest = is_on_portal? NULL : dest->segment_portal_dest;
 
-        if (dest->free_empty_segments && prev_segment != dest->cur_segment_head) {
+        if (dest->free_empty_segments && prev_segment != dest->cur_segment_head && !is_on_portal) {
             PQ_remove_used_segment(dest, prev_segment);
         }
 
@@ -283,7 +291,6 @@ Errors PortalQueue_pop(PortalQueue* dest, uint8_t* value)
         dest->tail = 0;
         dest->window_size = dest->segment_capacity;
         dest->segment_portal_src = NULL;
-        dest->segment_portal_dest = NULL;
 
         if (dest->free_empty_segments && prev_segment != dest->cur_segment_head) {
             PQ_remove_used_segment(dest, prev_segment);
@@ -300,5 +307,5 @@ bool PortalQueue_is_full(PortalQueue* dest)
 
 bool PortalQueue_is_empty(PortalQueue* dest)
 {
-    return dest && dest->cur_segment_head == dest->cur_segment_tail && dest->head == dest->tail && !dest->full;
+    return dest && PQ_is_empty(dest);
 }
