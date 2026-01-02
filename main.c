@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include "ring_buffer_demo.h"
 #include "portal_queue_demo.h"
+#include "arena_allocator_demo.h"
 
 int main(int argc, char* argv[])
 {
@@ -15,7 +16,8 @@ int main(int argc, char* argv[])
         printf("type command:\n"
         "0 - quit\n"
         "1 - RingBuffer demo\n"
-        "2 - PortalQueue demo\n");
+        "2 - PortalQueue demo\n"
+        "3 - ArenaAllocator demo\n");
         scanf("%d", &command);
 
         switch (command) {
@@ -37,6 +39,11 @@ int main(int argc, char* argv[])
 
             case 2: {
                 PortalQueue_demo();
+                break;
+            }
+
+            case 3: {
+                ArenaAllocator_demo();
                 break;
             }
         }

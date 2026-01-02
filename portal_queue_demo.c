@@ -1,7 +1,7 @@
 #include "portal_queue.h"
 #include <stdio.h>
 
-void print_portal_queue_info(PortalQueue* dest)
+static void PortalQueue_print_info(PortalQueue* dest)
 {
     printf("Segment capacity: %d\nis full: %d\nis empty: %d\nhave portal: %d\n", 
         dest->segment_capacity, PortalQueue_is_full(dest), PortalQueue_is_empty(dest), dest->segment_portal_src != NULL);
@@ -103,7 +103,7 @@ void PortalQueue_demo()
         printf("free empty segments: %d\n", free_empty_segments);
         printf("auto increment: %d\n", auto_increment);
         printf("reset popped values: %d\n", reset_popped_values);
-        print_portal_queue_info(&portal_queue);
+        PortalQueue_print_info(&portal_queue);
 
         printf("type command number:\n"
             "0-quit\n"

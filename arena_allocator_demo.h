@@ -1,0 +1,6 @@
+#ifndef INCLUDE_ARENA_ALLOCATOR_DEMO_H
+#define INCLUDE_ARENA_ALLOCATOR_DEMO_H
+
+void ArenaAllocator_demo(void);
+
+#endif  // INCLUDE_ARENA_ALLOCATOR_DEMO_H

@@ -16,6 +16,14 @@ add_library(PortalQueue STATIC
     portal_queue_demo.c)
 target_link_libraries(PortalQueue PRIVATE RetCode)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE RingBuffer PortalQueue)
+add_library(ArenaAllocator STATIC
+    arena_allocator.c
+    arena_allocator_demo.c)
+target_link_libraries(ArenaAllocator PRIVATE RetCode)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE 
+    RingBuffer 
+    PortalQueue 
+    ArenaAllocator)
 
 install(TARGETS ${PROJECT_NAME} CONFIGURATIONS Debug RELEASE DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
