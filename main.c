@@ -6,6 +6,8 @@
 #include "slab_allocator_demo.h"
 #include "page_allocator_demo.h"
 #include "pool_allocator_demo.h"
+#include "huffman_encoding_demo.h"
+#include "priorities_queue_demo.h"
 
 int main(int argc, char* argv[])
 {
@@ -23,7 +25,9 @@ int main(int argc, char* argv[])
         "3 - ArenaAllocator demo\n"
         "4 - PoolAllocator demo\n"
         "5 - PageAllocator demo\n"
-        "6 - SlabAllocator demo\n");
+        "6 - SlabAllocator demo\n"
+        "7 - HuffmanEncoding demo\n"
+        "8 - PrioritiesQueue demo\n");
         scanf("%d", &command);
 
         switch (command) {
@@ -65,6 +69,16 @@ int main(int argc, char* argv[])
 
             case 6: {
                 SlabAllocator_demo();
+                break;
+            }
+
+            case 7: {
+                HuffmanEncoding_demo();
+                break;
+            }
+
+            case 8: {
+                PrioritiesQueue_demo();
                 break;
             }
         }

@@ -28,5 +28,6 @@ void MemMapDemo_init(MemMapDemo* dest, void* allocator_dest, allocate_func alloc
 void MemMapDemo_deinit(MemMapDemo* dest);
 void MemMapDemo_allocate_dialogue(MemMapDemo* dest);
 void MemMapDemo_free_dialogue(MemMapDemo* dest);
+void MemMapDemo_list(MemMapDemo* dest);
 
 #endif  // INCLUDE_MEM_DEMO_MAP_H

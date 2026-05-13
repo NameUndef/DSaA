@@ -12,5 +12,5 @@ size_t get_aligned_low_border_value(size_t value, size_t alignment)
 
 bool is_power_of_2(size_t value)
 {
-    return (value & ~(value - 1)) == 0;
+    return (value & (value - 1)) == 0;
 }

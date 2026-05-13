@@ -11,7 +11,7 @@ static void SlabAllocator_print_slab_list(Slab* list)
     Slab* current = list;
     size_t count = 0;
     while (current) {
-        printf("----\nused: %zu, slots addr: %p", current->used, current->slots_data);
+        printf("used: %zu, slots addr: %p", current->used, current->slots_data);
         count++;
         current = current->next;
     }
@@ -25,23 +25,31 @@ static void SlabAllocator_print_info(SlabAllocator* dest)
         "object size: %d\n"
         "object alignment: %d\n"
         "aligned object size: %d\n"
-        "first object padding: %d\n",
+        "first object padding: %d\n\n",
         dest->object_count, dest->object_size, dest->object_alignment, dest->aligned_object_size, dest->first_object_padding);
 
     printf("empty slabs:\n");
     SlabAllocator_print_slab_list(dest->empty);
+    printf("\n");
 
     printf("partial slabs:\n");
     SlabAllocator_print_slab_list(dest->partial);
+    printf("\n");
 
     printf("full slabs:\n");
     SlabAllocator_print_slab_list(dest->full);
+    printf("\n");
 }
 
-static void SlabAllocator_free_func(void* dest, void* address)
+static void *allocate_f(void *dest)
 {
-    (void) dest;
-    SlabAllocator_free(address);
+    return SlabAllocator_allocate((SlabAllocator*) dest);
+}
+
+static Errors free_f(void *dest, void *address)
+{
+    (void)dest;
+    return SlabAllocator_free(address);
 }
 
 void SlabAllocator_demo(void)
@@ -79,7 +87,7 @@ void SlabAllocator_demo(void)
     }
 
     MemMapDemo allocated_addresses_demo;
-    MemMapDemo_init(&allocated_addresses_demo, &slab_allocator, SlabAllocator_allocate, SlabAllocator_free_func);
+    MemMapDemo_init(&allocated_addresses_demo, &slab_allocator, allocate_f, free_f);
 
     do {
         SlabAllocator_print_info(&slab_allocator);
@@ -87,7 +95,8 @@ void SlabAllocator_demo(void)
         printf("type command:\n"
             "0 - quit\n"
             "1 - allocate\n"
-            "2 - deallocate\n");
+            "2 - deallocate\n"
+            "3 - list\n");
         scanf("%d", &command);
 
         switch (command) {
@@ -103,10 +112,17 @@ void SlabAllocator_demo(void)
 
             case 1: {
                 MemMapDemo_allocate_dialogue(&allocated_addresses_demo);
+                break;
             }
 
             case 2: {
                 MemMapDemo_free_dialogue(&allocated_addresses_demo);
+                break;
+            }
+
+            case 3: {
+                MemMapDemo_list(&allocated_addresses_demo);
+                break;
             }
         }
 

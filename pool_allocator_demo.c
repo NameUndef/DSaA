@@ -3,7 +3,19 @@
 #include "mem_demo_map.h"
 #include <stdio.h>
 
-void PageAllocator_demo(void)
+static void* allocate_f(void* dest)
+{
+    return PoolAllocator_allocate((PoolAllocator*) dest);
+}
+
+
+static Errors free_f(void* dest, void* address)
+{
+    return PoolAllocator_free((PoolAllocator*) dest, address);
+}
+
+
+void PoolAllocator_demo(void)
 {
     size_t object_count = 0;
     size_t object_size = 0;
@@ -29,16 +41,22 @@ void PageAllocator_demo(void)
     }
 
     MemMapDemo allocated_addresses_demo;
-    MemMapDemo_init(&allocated_addresses_demo, &allocator, PoolAllocator_allocate, PoolAllocator_free);
+    MemMapDemo_init(&allocated_addresses_demo, &allocator, allocate_f, free_f);
 
     do {
         printf("--------\n");
         printf("Used: %zu, free: %zu\n", PoolAllocator_get_used(&allocator), PoolAllocator_get_free(&allocator));
+        printf("object size: %zu, aligned size: %zu, capacity count: %zu, pool size: %zu\n",
+            allocator.object_size,
+            allocator.object_aligned_size,
+            allocator.capacity_count,
+            allocator.pool_size);
 
         printf("type command:\n"
             "0 - quit\n"
             "1 - allocate\n"
-            "2 - deallocate\n");
+            "2 - deallocate\n"
+            "3 - list\n");
         scanf("%d", &command);
         
         switch (command) {
@@ -59,6 +77,11 @@ void PageAllocator_demo(void)
 
             case 2: {
                 MemMapDemo_free_dialogue(&allocated_addresses_demo);
+                break;
+            }
+
+            case 3: {
+                MemMapDemo_list(&allocated_addresses_demo);
                 break;
             }
             

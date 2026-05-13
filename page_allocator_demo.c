@@ -3,6 +3,37 @@
 #include "ret_code.h"
 #include <stdio.h>
 
+static void *allocate_f(void* dest)
+{
+    return PageAllocator_allocate((PageAllocator*) dest);
+}
+
+static Errors free_f(void* obj, void* page)
+{
+    return (Errors) PageAllocator_free((PageAllocator*) obj, page);
+}
+
+void PageAllocator_print_info(PageAllocator* obj)
+{
+    printf("nodes in page: %zu\n", obj->cur_nodes_count_in_page);
+    printf("headers in page: %zu\n", obj->cur_headers_count_in_page);
+    printf("pages in chunk: %zu\n", obj->chunk_page_count);
+    
+    PA_ChunkHeader *header = obj->partial;
+    printf("partial:\n");
+    while (header) {
+        printf("chunk address: %p, used: %zu\n", header->chunk_address, header->used);
+        header = header->next;
+    }
+
+    header = obj->full;
+    printf("full:\n");
+    while (header) {
+        printf("chunk address: %p\n", header->chunk_address);
+        header = header->next;
+    }
+}
+
 void PageAllocator_demo(void)
 {
     size_t chunk_page_count = 0;
@@ -25,7 +56,7 @@ void PageAllocator_demo(void)
     }
 
     MemMapDemo allocated_addresses_demo;
-    MemMapDemo_init(&allocated_addresses_demo, &allocator, PageAllocator_allocate, PageAllocator_free);
+    MemMapDemo_init(&allocated_addresses_demo, &allocator, allocate_f, free_f);
 
     do {
 

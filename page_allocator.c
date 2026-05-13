@@ -2,9 +2,12 @@
 #include "page_manage.h"
 #include "alignment.h"
 
+#include <stdio.h>
+#include "utils.h"
 
 #define CHUNK_PAGES_COUNT   512ULL
 #define BITMAP_ELEMENT_SIZE 64ULL
+#define BITMAP_ELEMENT_BYTES 8ULL
 
 static size_t get_0_bits_count_before_1(size_t value)
 {
@@ -18,7 +21,21 @@ static size_t get_0_bits_count_before_1(size_t value)
     return count;
 }
 
-static Errors PA_pre_init(PageAllocator* dest, size_t chunk_pages_count) 
+void print_bitmaps(PageAllocator *obj)
+{
+    for (size_t i = 0; i < obj->cur_nodes_count_in_page; i++) {
+        PA_ChunkHeader* header = obj->node_pages->nodes[i].chunk_header;
+        
+        printf("address: %p\n", header->chunk_address);
+        for (size_t bitmap = 0; bitmap < obj->bitmap_array_size; bitmap++) {
+            printf("%p: ", &header->use_bitmap[bitmap]);
+            print_u64_bits(header->use_bitmap[bitmap]);
+        }
+    }
+
+}
+
+static int PA_pre_init(PageAllocator* obj, size_t chunk_pages_count) 
 {
     if (!chunk_pages_count) {
         chunk_pages_count = CHUNK_PAGES_COUNT;
@@ -29,153 +46,175 @@ static Errors PA_pre_init(PageAllocator* dest, size_t chunk_pages_count)
     size_t chunk_size = chunk_pages_count << page_zero_bits_count;
     size_t bitmap_array_size = (chunk_pages_count + (BITMAP_ELEMENT_SIZE - 1)) / BITMAP_ELEMENT_SIZE;
     size_t last_bitmap_size = chunk_pages_count % BITMAP_ELEMENT_SIZE;
-    size_t headers_count_per_page = (page_size - sizeof(PA_ChunkHeaderPage)) / (sizeof(PA_ChunkHeader) + dest->bitmap_array_size);
+
+    if (last_bitmap_size) {
+        bitmap_array_size++;
+    } else {
+        last_bitmap_size = BITMAP_ELEMENT_SIZE;
+    }
+
+    size_t header_size = sizeof(PA_ChunkHeader) + BITMAP_ELEMENT_BYTES * bitmap_array_size;
+
+    size_t headers_count_per_page = (page_size - sizeof(PA_ChunkHeaderPage)) / header_size;
     size_t nodes_count_per_page = (page_size - sizeof(PA_ChunkHeaderNodePage)) / sizeof(PA_ChunkHeaderNode);
 
     if (headers_count_per_page == 0) {
         return BAD_ARGUMENT_OUT_OF_BOUNDS;
     }
 
-    dest->chunk_size = chunk_size;
-    dest->chunk_page_count = chunk_pages_count;
-    dest->bitmap_array_size = bitmap_array_size;
-    dest->last_bitmap_size = last_bitmap_size;
-    dest->headers_count_per_page = headers_count_per_page;
-    dest->nodes_count_per_page = nodes_count_per_page;
-    dest->cur_headers_count_in_page = chunk_pages_count;
-    dest->cur_nodes_count_in_page = chunk_pages_count;
-    dest->page_zero_bits_count = page_zero_bits_count;
+    obj->page_size = page_size;
+    obj->chunk_size = chunk_size;
+    obj->chunk_page_count = chunk_pages_count;
+    obj->bitmap_array_size = bitmap_array_size;
+    obj->last_bitmap_size = last_bitmap_size;
+    obj->header_size = header_size;
+    obj->headers_count_per_page = headers_count_per_page;
+    obj->nodes_count_per_page = nodes_count_per_page;
+    obj->cur_headers_count_in_page = headers_count_per_page;
+    obj->cur_nodes_count_in_page = nodes_count_per_page;
+    obj->page_zero_bits_count = page_zero_bits_count;
 
-    dest->header_pages = NULL;
-    dest->node_pages = NULL;
+    obj->header_pages = NULL;
+    obj->node_pages = NULL;
 
-    dest->last = NULL;
-    dest->empty = NULL;
-    dest->partial = NULL;
-    dest->full = NULL;
+    obj->last = NULL;
+    obj->empty = NULL;
+    obj->partial = NULL;
+    obj->full = NULL;
 
     return OK;
 }
 
-static Errors PA_add_headers_page(PageAllocator* dest)
+static int PA_add_headers_page(PageAllocator* obj)
 {
     void* page = allocate_page();
+
     if (!page) {
         return ALLOC_ERROR;
     }
 
     PA_ChunkHeaderPage* header_page = (PA_ChunkHeaderPage*) page;
-    header_page->next = dest->header_pages;
-    dest->header_pages = header_page;
+    header_page->next = obj->header_pages;
+    obj->header_pages = header_page;
 
     return OK;
 }
 
-static Errors PA_add_nodes_page(PageAllocator* dest)
+static int PA_add_nodes_page(PageAllocator* obj)
 {
     void* page = allocate_page();
     if (!page) {
         return ALLOC_ERROR;
     }
 
-    PA_ChunkHeaderNodePage* header_page = (PA_ChunkHeaderNodePage*) page;
-    header_page->next = dest->header_pages;
-    dest->header_pages = header_page;
+    PA_ChunkHeaderNodePage* node_page = (PA_ChunkHeaderNodePage*) page;
+    node_page->next = obj->node_pages;
+    obj->node_pages = node_page;
 
     return OK;
 }
 
-static void PA_remove_last_header_page(PageAllocator* dest)
+static void PA_remove_last_header_page(PageAllocator* obj)
 {
-    PA_ChunkHeaderPage* header_page = dest->header_pages;
-    dest->header_pages = header_page->next;
+    PA_ChunkHeaderPage* header_page = obj->header_pages;
+    obj->header_pages = header_page->next;
 
     free_page((void*)header_page);
 }
 
-static Errors PA_add_chunk(PageAllocator* dest)
+static int PA_add_chunk(PageAllocator* obj)
 {
-    Errors ret_code = OK;
+    int ret_code = OK;
 
-    void* chunk = allocate_page_sz(dest->chunk_size);
+    void* chunk = allocate_page_sz(obj->chunk_size);
     if (!chunk) {
         return ALLOC_ERROR;
     }
 
-    if (dest->cur_headers_count_in_page == dest->headers_count_per_page) {
-        ret_code = PA_add_headers_page(dest);
+    if (obj->cur_headers_count_in_page == obj->headers_count_per_page) {
+        ret_code = PA_add_headers_page(obj);
         if (ret_code != OK) {
-            free_page_sz(chunk, dest->chunk_size);
+            free_page_sz(chunk, obj->chunk_size);
             return ret_code;
         }
-        dest->cur_headers_count_in_page = 0;
+        obj->cur_headers_count_in_page = 0;
     }
 
-    PA_ChunkHeader* header = dest->header_pages->headers + dest->cur_headers_count_in_page;
-    dest->cur_headers_count_in_page++;
+    PA_ChunkHeader* header = (PA_ChunkHeader*)((char*)obj->header_pages->headers + obj->header_size * obj->cur_headers_count_in_page);
+    obj->cur_headers_count_in_page++;
 
-    if (dest->cur_nodes_count_in_page == dest->nodes_count_per_page) {
-        ret_code = PA_add_nodes_page(dest);
+    if (obj->cur_nodes_count_in_page == obj->nodes_count_per_page) {
+        ret_code = PA_add_nodes_page(obj);
         if (ret_code != OK) {
-            if (dest->cur_headers_count_in_page == 1) {
-                PA_remove_last_header_page(dest);
-                dest->cur_headers_count_in_page = dest->headers_count_per_page;
-                free_page_sz(chunk, dest->chunk_size);
+            if (obj->cur_headers_count_in_page == 1) {
+                PA_remove_last_header_page(obj);
+                obj->cur_headers_count_in_page = obj->headers_count_per_page;
+                free_page_sz(chunk, obj->chunk_size);
             }
             return ret_code;
         }
-        dest->cur_nodes_count_in_page = 0;
+        obj->cur_nodes_count_in_page = 0;
     }
 
-    PA_ChunkHeaderNode* node = dest->node_pages->nodes + dest->cur_nodes_count_in_page;
-    dest->cur_nodes_count_in_page++;
+    PA_ChunkHeaderNode* node = obj->node_pages->nodes + obj->cur_nodes_count_in_page;
+    obj->cur_nodes_count_in_page++;
+
+    // printf("%p - %p - %p\n", obj->header_pages->headers, header, obj->header_pages + 4096);
+
+    // printf("%llu, %llu, %llu\n", obj->cur_headers_count_in_page, obj->headers_count_per_page, obj->header_size);
+
+    // printf("%llu, %llu\n", obj->cur_nodes_count_in_page, obj->nodes_count_per_page);
 
     // инициализируем header
     header->prev = NULL;
-    header->next = dest->empty;
+    header->next = obj->empty;
     header->used = 0;
     header->chunk_address = chunk;
 
-    for (size_t i = 0; i < dest->bitmap_array_size; i++) {
+    for (size_t i = 0; i < obj->bitmap_array_size; i++) {
         header->use_bitmap[i] = 0;
     }
 
-    if (dest->empty) {
-        dest->empty->prev = header;
+    if (obj->empty) {
+        obj->empty->prev = header;
     }
 
-    dest->empty = header;
+    obj->empty = header;
     
     // инициализируем node
     node->chunk_address = chunk;
     node->chunk_header = header;
+    
+    return OK;
 }
 
-static void PA_post_deinit(PageAllocator* dest) 
+static void PA_post_deinit(PageAllocator* obj) 
 {
-    dest->chunk_size = 0;
-    dest->chunk_page_count = 0;
-    dest->bitmap_array_size = 0;
-    dest->last_bitmap_size = 0;
-    dest->headers_count_per_page = 0;
-    dest->nodes_count_per_page = 0;
-    dest->cur_headers_count_in_page = 0;
-    dest->cur_nodes_count_in_page = 0;
-    dest->page_zero_bits_count = 0;
+    obj->page_size = 0;
+    obj->chunk_size = 0;
+    obj->chunk_page_count = 0;
+    obj->bitmap_array_size = 0;
+    obj->last_bitmap_size = 0;
+    obj->header_size = 0;
+    obj->headers_count_per_page = 0;
+    obj->nodes_count_per_page = 0;
+    obj->cur_headers_count_in_page = 0;
+    obj->cur_nodes_count_in_page = 0;
+    obj->page_zero_bits_count = 0;
 
-    dest->header_pages = NULL;
-    dest->node_pages = NULL;
+    obj->header_pages = NULL;
+    obj->node_pages = NULL;
 
-    dest->last = NULL;
-    dest->empty = NULL;
-    dest->partial = NULL;
-    dest->full = NULL;
+    obj->last = NULL;
+    obj->empty = NULL;
+    obj->partial = NULL;
+    obj->full = NULL;
 }
 
-static void PA_free_chunks_list(PageAllocator* dest, PA_ChunkHeader* list)
+static void PA_free_chunks_list(PageAllocator* obj, PA_ChunkHeader* list)
 {
     while (list) {
-        free_page_sz(list->chunk_address, dest->chunk_size);
+        free_page_sz(list->chunk_address, obj->chunk_size);
         list = list->next;
     }
 }
@@ -198,23 +237,23 @@ static void PA_free_nodes_list(PA_ChunkHeaderNodePage* list)
     }
 }
 
-static void PA_free_chunks(PageAllocator* dest)
+static void PA_free_chunks(PageAllocator* obj)
 {
-    PA_free_chunks_list(dest, dest->empty);
-    PA_free_chunks_list(dest, dest->partial);
-    PA_free_chunks_list(dest, dest->full);
+    PA_free_chunks_list(obj, obj->empty);
+    PA_free_chunks_list(obj, obj->partial);
+    PA_free_chunks_list(obj, obj->full);
 
-    PA_free_headers_list(dest->header_pages);
-    PA_free_nodes_list(dest->node_pages);
+    PA_free_headers_list(obj->header_pages);
+    PA_free_nodes_list(obj->node_pages);
 }
 
-Errors PageAllocator_init(PageAllocator* dest, size_t chunk_pages_count, size_t init_chunk_count)
+int PageAllocator_init(PageAllocator* obj, size_t chunk_pages_count, size_t init_chunk_count)
 {
-    if (!dest) {
+    if (!obj) {
         return BAD_ARGUMENT_NULL_POINTER;
     }
 
-    Errors ret_code = PA_pre_init(dest, chunk_pages_count);
+    int ret_code = PA_pre_init(obj, chunk_pages_count);
     if (ret_code != OK) {
         return ret_code;
     }
@@ -224,10 +263,10 @@ Errors PageAllocator_init(PageAllocator* dest, size_t chunk_pages_count, size_t 
     }
 
     for (size_t i = 0; i < init_chunk_count; i++) {
-        ret_code = PA_add_chunk(dest);
+        ret_code = PA_add_chunk(obj);
         if (ret_code != OK) {
-            PA_free_chunks(dest);
-            PA_post_deinit(dest);
+            PA_free_chunks(obj);
+            PA_post_deinit(obj);
             return ret_code;
         }
     }
@@ -235,43 +274,54 @@ Errors PageAllocator_init(PageAllocator* dest, size_t chunk_pages_count, size_t 
     return OK;
 }
 
-Errors PageAllocator_deinit(PageAllocator* dest)
+int PageAllocator_deinit(PageAllocator* obj)
 {
-    if (!dest) {
+    if (!obj) {
         return BAD_ARGUMENT_NULL_POINTER;
     }
 
-    PA_free_chunks(dest);
-    PA_post_deinit(dest);
+    PA_free_chunks(obj);
+    PA_post_deinit(obj);
 
     return OK;
 }
 
-static void* PA_allocate_page_from_chunk(PageAllocator* dest, PA_ChunkHeader* header)
+static void* PA_allocate_page_from_chunk(PageAllocator* obj, PA_ChunkHeader* header)
 {
     // Отсутствие пустых страниц - инвариант для данной функции. Они по-умолчанию должны быть
     size_t i = 0;
     size_t bit_idx = 0;
 
-    for (i = 0; i < dest->bitmap_array_size; i++) {
+    bool free_page_found = false;
+    for (i = 0; i < obj->bitmap_array_size; i++) {
 
-        size_t bitmap_size = i == dest->bitmap_array_size - 1 ? dest->last_bitmap_size : BITMAP_ELEMENT_SIZE;
+        size_t bitmap_size = i == obj->bitmap_array_size - 1 ? obj->last_bitmap_size : BITMAP_ELEMENT_SIZE;
 
-        for (bit_idx = 0; i < bitmap_size; bit_idx++) {
-            if (!(header->use_bitmap[i] & (1 << bit_idx))) {
+        for (bit_idx = 0; bit_idx < bitmap_size; bit_idx++) {
+
+            if (!(header->use_bitmap[i] & (1ULL << bit_idx))) {
+                free_page_found = true;
                 break;   
             }
+        }
+
+        if (free_page_found) {
+            break;
         }
     }
 
     header->used++;
-    header->use_bitmap[i] |= (1 << bit_idx);
+    header->use_bitmap[i] |= (1ULL << bit_idx);
 
+    // printf("alloc: %p, %llu, %llu, used: %llu, %llu, ", header->chunk_address, i, bit_idx, header->used, obj->chunk_page_count);
+    // printf("%p: ", &header->use_bitmap[i]);
+    // print_u64_bits(header->use_bitmap[i]);
     size_t page_idx = i * BITMAP_ELEMENT_SIZE + bit_idx;
-    return header->chunk_address + (page_idx * dest->chunk_size);
+    return header->chunk_address + (page_idx * obj->page_size);
 }
 
-static void PA_move_first_chunk_to_first(PageAllocator* dest, PA_ChunkHeader** chunk_list_src, PA_ChunkHeader** list_dest) 
+
+static void PA_move_first_chunk_to_first(PageAllocator* obj, PA_ChunkHeader** chunk_list_src, PA_ChunkHeader** list_dest) 
 {
     PA_ChunkHeader* header = *chunk_list_src;
     if (header->next) {
@@ -284,57 +334,69 @@ static void PA_move_first_chunk_to_first(PageAllocator* dest, PA_ChunkHeader** c
     *list_dest = header;
 }
 
-void* PageAllocator_allocate(PageAllocator* dest)
+void* PageAllocator_allocate_rc(PageAllocator* obj, int *ret_code)
 {
-    if (!dest) {
+    if (!obj) {
+        if (ret_code != NULL) {
+            *ret_code = BAD_ARGUMENT_NULL_POINTER;
+        }
         return NULL;
     }
 
     PA_ChunkHeader** header_list = NULL;
 
-    if (dest->partial) {
-        header_list = &dest->partial;
+    if (obj->partial) {
+        header_list = &obj->partial;
 
-    } else if (dest->empty) {
-        header_list = &dest->empty;
+    } else if (obj->empty) {
+        header_list = &obj->empty;
 
     } else {
-        Errors ret_code = PA_add_chunk(dest);
-        if (ret_code != OK) {
+        int ret_code_inner = PA_add_chunk(obj);
+        if (ret_code_inner != OK) {
+            if (ret_code != NULL) {
+                *ret_code = ret_code_inner;
+            }
             return NULL;
         }
 
-        header_list = &dest->empty;
+        header_list = &obj->empty;
     }
 
     PA_ChunkHeader* header = *header_list;
-    void* data = PA_allocate_page_from_chunk(dest, header);
+    void* data = PA_allocate_page_from_chunk(obj, header);
 
-    if (header->used == dest->chunk_page_count) {
-        PA_move_first_chunk_to_first(dest, header_list, &dest->full);
+    if (header->used == obj->chunk_page_count) {
+        PA_move_first_chunk_to_first(obj, header_list, &obj->full);
     } else if (header->used == 1) {
-        PA_move_first_chunk_to_first(dest, header_list, &dest->partial);
+        PA_move_first_chunk_to_first(obj, header_list, &obj->partial);
     }
 
     return data;
 }
 
-static PA_ChunkHeaderNode* find_chunk_with_address_in_diapason(PageAllocator* dest, void* address)
+void* PageAllocator_allocate(PageAllocator* obj)
+{
+    return PageAllocator_allocate_rc(obj, NULL);
+}
+
+static PA_ChunkHeaderNode* find_chunk_with_address_in_range(PageAllocator* obj, void* address)
 {
     // сначала проверяем последний найденный чанк
-    if (dest->last && address >= dest->last->chunk_address && address < dest->last->chunk_address + dest->chunk_size) {
-        return dest->last;
+    if (obj->last && address >= obj->last->chunk_address && address < obj->last->chunk_address + obj->chunk_size) {
+        return obj->last;
     }
 
-    PA_ChunkHeaderNodePage* page = dest->node_pages;
+    PA_ChunkHeaderNodePage* page = obj->node_pages;
     PA_ChunkHeaderNode* tagret_node = NULL;
 
-    size_t nodes_count = dest->cur_nodes_count_in_page;
+    size_t nodes_count = obj->cur_nodes_count_in_page;
 
     while (page) {
 
         for (size_t i = 0; i < nodes_count; i++) {
-            if (address >= page->nodes[i].chunk_address && address < page->nodes[i].chunk_address + dest->chunk_size) {
+
+            if (address >= page->nodes[i].chunk_address && address < page->nodes[i].chunk_address + obj->chunk_size) {
                 tagret_node = page->nodes + i;
                 break;
             }
@@ -344,27 +406,31 @@ static PA_ChunkHeaderNode* find_chunk_with_address_in_diapason(PageAllocator* de
             break;
         }
 
-        nodes_count = dest->nodes_count_per_page;
+        nodes_count = obj->nodes_count_per_page;
         page = page->next;
     }
 
-    dest->last = tagret_node;
+    obj->last = tagret_node;
 
     return tagret_node;
 }
 
-static bool PA_free_page_from_chunk(PageAllocator* dest, PA_ChunkHeader* header, void* page)
+static bool PA_free_page_from_chunk(PageAllocator* obj, PA_ChunkHeader* header, void* page)
 {
     // адрес должен быть проверен и находиться в рамках чанка
-    uintptr_t page_idx = (uintptr_t) (page - header->chunk_address) >> dest->page_zero_bits_count;
+    uintptr_t page_idx = (uintptr_t) (page - header->chunk_address) >> obj->page_zero_bits_count;
     size_t bitmap_idx = page_idx / BITMAP_ELEMENT_SIZE;
     size_t bit_idx = page_idx % BITMAP_ELEMENT_SIZE;
 
-    if (!(header->use_bitmap[bitmap_idx] & (1 << bit_idx))) {
+    // printf("free: %p, %llu, %llu ", header->chunk_address, bitmap_idx, bit_idx);
+    // printf("%llu: ", header->used);
+    // print_u64_bits(header->use_bitmap[bitmap_idx]);
+
+    if (!(header->use_bitmap[bitmap_idx] & (1ULL << bit_idx))) {
         return false;
     }
 
-    header->use_bitmap[bitmap_idx] &= ~(1 << bit_idx);
+    header->use_bitmap[bitmap_idx] &= ~(1ULL << bit_idx);
 
     return true;
 }
@@ -389,9 +455,9 @@ static void PA_move_chunk_to_first(PA_ChunkHeader* header, PA_ChunkHeader** list
     *list_dest = header;
 }
 
-Errors PageAllocator_free(PageAllocator* dest, void* page)
+int PageAllocator_free(PageAllocator* obj, void* page)
 {
-    if (!dest) {
+    if (!obj) {
         return BAD_ARGUMENT_NULL_POINTER;
     }
 
@@ -399,7 +465,7 @@ Errors PageAllocator_free(PageAllocator* dest, void* page)
         return BAD_ARGUMENT_NULL_POINTER;
     }
 
-    PA_ChunkHeaderNode* node = find_chunk_with_address_in_diapason(dest, page);
+    PA_ChunkHeaderNode* node = find_chunk_with_address_in_range(obj, page);
     if (!node) {
         return BAD_ARGUMENT_OUT_OF_BOUNDS;
     }
@@ -409,15 +475,15 @@ Errors PageAllocator_free(PageAllocator* dest, void* page)
         return ALREADY_FREE;
     }
 
-    bool res = PA_free_page_from_chunk(dest, header, page);
+    bool res = PA_free_page_from_chunk(obj, header, page);
     if (!res) {
         return ALREADY_FREE;
     }
 
-    if (header->used == dest->chunk_page_count) {
-        PA_move_chunk_to_first(header, &dest->full, (dest->chunk_page_count == 1)? &dest->empty : &dest->partial);
+    if (header->used == obj->chunk_page_count) {
+        PA_move_chunk_to_first(header, &obj->full, (obj->chunk_page_count == 1)? &obj->empty : &obj->partial);
     } else if (header->used == 1) {
-        PA_move_chunk_to_first(header, &dest->partial, &dest->empty);
+        PA_move_chunk_to_first(header, &obj->partial, &obj->empty);
     }
 
     header->used--;

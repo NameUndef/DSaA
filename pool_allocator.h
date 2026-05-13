@@ -9,7 +9,6 @@ typedef struct {
     size_t   pool_size;
     size_t   capacity_count;
     size_t   object_size;
-    size_t   object_alignment_padding;
     size_t   object_aligned_size;
     size_t   used;
     uint8_t* free_list;
@@ -24,12 +23,12 @@ void*  PoolAllocator_allocate(PoolAllocator* dest);
 // адрес должен быть на занятый участок, а не на свободны, иначе UB
 Errors PoolAllocator_free(PoolAllocator* dest, void* address);
 
-inline size_t PoolAllocator_get_used(PoolAllocator* dest)
+static inline size_t PoolAllocator_get_used(PoolAllocator* dest)
 {
     return dest->used;
 }
 
-inline size_t PoolAllocator_get_free(PoolAllocator* dest)
+static inline size_t PoolAllocator_get_free(PoolAllocator* dest)
 {
     return dest->capacity_count - dest->used;
 }

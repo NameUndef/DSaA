@@ -1,0 +1,6 @@
+#ifndef INCLUDE_PRIORITIES_QUEUE_DEMO
+#define INCLUDE_PRIORITIES_QUEUE_DEMO
+
+void PrioritiesQueue_demo(void);
+
+#endif  // INCLUDE_PRIORITIES_QUEUE_DEMO

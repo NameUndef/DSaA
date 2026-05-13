@@ -1,7 +1,9 @@
 #include "slab_allocator.h"
 #include "alignment.h"
+#include "page_manage.h"
 #include <stdbool.h>
 #include <stdalign.h>
+#include <string.h>
 
 static Errors SA_add_slab(SlabAllocator *dest)
 {
@@ -19,11 +21,11 @@ static Errors SA_add_slab(SlabAllocator *dest)
 
     for (size_t i = 1; i < dest->object_count; i++) {
         uint8_t* next = current + dest->aligned_object_size;
-        *(uint8_t**)current = next;
+        memcpy(current, &next, sizeof(uint8_t*));
         current = next;
     }
 
-    *((uint8_t**)current) = NULL;
+    memset(current, 0, sizeof(uint8_t*));
 
     slab->used = 0;
 
@@ -121,7 +123,7 @@ Errors SlabAllocator_init(
     size_t aligned_object_size = get_aligned_value(object_size, object_alignment);
 
     // один объект точно вмещается
-    size_t object_count = 1 + ((page_size - first_object_offset - object_size) / aligned_object_size);
+    size_t object_count = (page_size - first_object_offset) / aligned_object_size;
 
     // инициализировать кэш
     dest->page_allocator = page_allocator;
@@ -168,7 +170,7 @@ static void* SA_allocate_from_slab(SlabAllocator *dest, Slab* slab)
     // берем первый свободный объект
     uint8_t* object = slab->free_list;
     // указываем следующий элемент в free list, он может быть и последним (NULL)
-    slab->free_list = *(uint8_t**)object;
+    memcpy(&slab->free_list, object, sizeof(uint8_t*));
 
     slab->used++;
 
@@ -188,6 +190,10 @@ static void SA_move_first_slab_to_first(SlabAllocator *dest, Slab** slab_list_sr
     // slab->prev уже NULL
     slab->next = *slab_list_dest;        // NULL, если в full никого не было
     *slab_list_dest = slab;
+
+    if (slab->next) {
+        slab->next->prev = slab;
+    }
 }
 
 void* SlabAllocator_allocate(SlabAllocator *dest)
@@ -243,6 +249,10 @@ static void SA_move_slab_to_first(Slab* slab, Slab** src_list, Slab** dest_list)
     slab->prev = NULL;
     slab->next = *dest_list;
     *dest_list = slab;
+
+    if (slab->next) {
+        slab->next->prev = slab;
+    }
 }
 
 Errors SlabAllocator_free(void *data)
@@ -265,7 +275,8 @@ Errors SlabAllocator_free(void *data)
     // установим следующий указатель в освободившийся объект,
     // и укажем его как первый элемент в free list
     *list_object_ptr = slab->free_list;
-    slab->free_list = (uint8_t*) list_object_ptr;
+
+    slab->free_list = (uint8_t*) data;
 
     SlabAllocator* cache = slab->cache;
 

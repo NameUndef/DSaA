@@ -38,10 +38,12 @@ typedef struct _PA_ChunkHeaderNodePage {
 
 
 typedef struct _PageCache {
+    size_t                  page_size;
     size_t                  chunk_size;
     size_t                  chunk_page_count;
     size_t                  bitmap_array_size;
     size_t                  last_bitmap_size;
+    size_t                  header_size;
     size_t                  headers_count_per_page;
     size_t                  nodes_count_per_page;
     size_t                  cur_headers_count_in_page;
@@ -51,7 +53,7 @@ typedef struct _PageCache {
     PA_ChunkHeaderPage*     header_pages;
     PA_ChunkHeaderNodePage* node_pages;
 
-    PA_ChunkHeader*         last;
+    PA_ChunkHeaderNode*     last;
     PA_ChunkHeader*         empty;
     PA_ChunkHeader*         partial;
     PA_ChunkHeader*         full;
@@ -60,10 +62,11 @@ typedef struct _PageCache {
 
 typedef PageCache PageAllocator;
 
-Errors PageAllocator_init(PageAllocator* dest, size_t chunk_pages_count, size_t init_chunk_count);
-Errors PageAllocator_deinit(PageAllocator* dest);
+int PageAllocator_init(PageAllocator* obj, size_t chunk_pages_count, size_t init_chunk_count);
+int PageAllocator_deinit(PageAllocator* obj);
 
-void* PageAllocator_allocate(PageAllocator* dest);
-Errors PageAllocator_free(PageAllocator* dest, void* page);
+void* PageAllocator_allocate_rc(PageAllocator* obj, int *ret_code);
+void* PageAllocator_allocate(PageAllocator* obj);
+int PageAllocator_free(PageAllocator* obj, void* page);
 
 #endif  // INCLUDE_PAGE_ALLOCATOR_H

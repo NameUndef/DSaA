@@ -5,6 +5,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib)
 
+add_library(Utils STATIC
+    utils.c)
+
 add_executable(${PROJECT_NAME} main.c)
 add_library(RetCode STATIC ret_code.c)
 
@@ -13,6 +16,7 @@ add_library(PageManage STATIC page_manage.c)
 add_library(Alignment STATIC alignment.c)
 
 add_library(MemDemoMap STATIC mem_demo_map.c)
+target_link_libraries(MemDemoMap PRIVATE Utils)
 
 add_library(RingBuffer STATIC ring_buffer.c ring_buffer_demo.c)
 target_link_libraries(RingBuffer PRIVATE RetCode)
@@ -43,7 +47,8 @@ target_link_libraries(PageAllocator PRIVATE
     RetCode
     PageManage
     Alignment
-    MemDemoMap)
+    MemDemoMap
+    Utils)
 
 add_library(SlabAllocator STATIC
     slab_allocator.c
@@ -55,12 +60,29 @@ target_link_libraries(SlabAllocator PRIVATE
     Alignment
     MemDemoMap)
 
+add_library(HuffmanEncoding STATIC
+    huffman_encoding.c
+    huffman_encoding_demo.c)
+
+target_link_libraries(HuffmanEncoding PRIVATE 
+    Utils)
+
+add_library(PrioritiesQueue STATIC
+    priorities_queue.c
+    priorities_queue_demo.c)
+
+target_link_libraries(PrioritiesQueue PRIVATE
+    RetCode)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     RingBuffer 
     PortalQueue 
     ArenaAllocator
     PoolAllocator
     PageAllocator
-    SlabAllocator)
+    SlabAllocator
+    HuffmanEncoding
+    PrioritiesQueue)
+
 
 install(TARGETS ${PROJECT_NAME} CONFIGURATIONS Debug RELEASE DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)

@@ -2,6 +2,7 @@
 #include "page_manage.h"
 #include "alignment.h"
 #include <stdalign.h>
+#include <string.h>
 
 static void PA_fill_free_list(PoolAllocator* dest)
 {
@@ -19,7 +20,7 @@ static void PA_fill_free_list(PoolAllocator* dest)
 
 Errors PoolAllocator_init(PoolAllocator* dest, size_t capacity_count, size_t object_size, size_t object_alignment)
 {
-    if (!dest) {
+    if (!dest) {    
         return BAD_ARGUMENT_NULL_POINTER;
     }
 
@@ -32,6 +33,7 @@ Errors PoolAllocator_init(PoolAllocator* dest, size_t capacity_count, size_t obj
     }
 
     size_t page_size = get_page_size();
+
 
     if (object_alignment > page_size) {
         return BAD_ARGUMENT_OUT_OF_BOUNDS;
@@ -51,10 +53,8 @@ Errors PoolAllocator_init(PoolAllocator* dest, size_t capacity_count, size_t obj
 
     const size_t size_max = (size_t) -1;
 
-    // проверка, будет ли выровненный размер вмещаться в адресное пространство
-    const size_t aligned_low_border = get_aligned_low_border_value(object_size, object_alignment);
-
-    if (object_size > object_alignment && object_size != aligned_low_border && aligned_low_border > size_max - object_alignment) {
+    // проверка перед вычислением выровненного размера
+    if (object_size > size_max - (object_alignment - 1)) {
         return BAD_ARGUMENT_OUT_OF_BOUNDS;
     }
 
@@ -66,7 +66,6 @@ Errors PoolAllocator_init(PoolAllocator* dest, size_t capacity_count, size_t obj
     }
 
     const size_t size = object_aligned_size * capacity_count;
-    const size_t object_aligment_padding = object_aligned_size - object_size;
 
     // аллокация завязана на выравнивании адреса по странице
     // в противном случае пришлось бы добавить начальный запас для выравнивания
@@ -79,7 +78,6 @@ Errors PoolAllocator_init(PoolAllocator* dest, size_t capacity_count, size_t obj
     dest->pool_size = size;
     dest->capacity_count = capacity_count;
     dest->object_size = object_size;
-    dest->object_alignment_padding = object_aligment_padding;
     dest->object_aligned_size = object_aligned_size;
     dest->used = 0;
     dest->free_list = NULL;
@@ -97,7 +95,6 @@ Errors PoolAllocator_deinit(PoolAllocator* dest)
     dest->pool_size = 0;
     dest->capacity_count = 0;
     dest->object_size = 0;
-    dest->object_alignment_padding = 0;
     dest->object_aligned_size = 0;
     dest->used = 0;
     dest->free_list = NULL;
@@ -107,6 +104,7 @@ Errors PoolAllocator_deinit(PoolAllocator* dest)
 
 void* PoolAllocator_allocate(PoolAllocator* dest)
 {
+
     if (!dest) {
         return NULL;
     }
@@ -116,7 +114,7 @@ void* PoolAllocator_allocate(PoolAllocator* dest)
     }
 
     uint8_t* object = dest->free_list;
-    dest->free_list = *(uint8_t**)object;   // последний будет NULL
+    memcpy(&dest->free_list, object, sizeof(uint8_t*));  // последний object будет NULL
 
     dest->used++;
 
@@ -129,7 +127,7 @@ Errors PoolAllocator_free(PoolAllocator* dest, void* address)
         return BAD_ARGUMENT_NULL_POINTER;
     }
 
-    if (address < dest->mem_start || address >= dest->mem_start + dest->pool_size) {
+    if ((uint8_t*)address < dest->mem_start || (uint8_t*)address >= dest->mem_start + dest->pool_size) {
         return BAD_ARGUMENT_OUT_OF_BOUNDS;
     }
 
@@ -144,7 +142,7 @@ Errors PoolAllocator_free(PoolAllocator* dest, void* address)
         return BAD_ARGUMENT_OUT_OF_BOUNDS;
     }
 
-    *(uint8_t**)address = dest->free_list;
+    memcpy(address, &dest->free_list, sizeof(uint8_t));
     dest->free_list = address;
     dest->used--;
 
