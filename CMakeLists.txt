@@ -5,11 +5,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib)
 
-add_library(Utils STATIC
-    utils.c)
-
 add_executable(${PROJECT_NAME} main.c)
 add_library(RetCode STATIC ret_code.c)
+
+add_library(Utils STATIC
+    utils.c)
 
 add_library(PageManage STATIC page_manage.c)
 
@@ -74,6 +74,24 @@ add_library(PrioritiesQueue STATIC
 target_link_libraries(PrioritiesQueue PRIVATE
     RetCode)
 
+add_library(HashMap STATIC
+    hash_map.c
+    hash_map_demo.c)
+
+target_link_libraries(HashMap PRIVATE
+    SlabAllocator
+    PageAllocator
+    Alignment
+    RetCode
+    Utils)
+
+add_library(BuddyAllocator STATIC
+    buddy_allocator.c)
+
+target_link_libraries(BuddyAllocator PRIVATE
+    Utils
+    Alignment)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     RingBuffer 
     PortalQueue 
@@ -82,7 +100,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     PageAllocator
     SlabAllocator
     HuffmanEncoding
-    PrioritiesQueue)
-
+    PrioritiesQueue
+    HashMap)
 
 install(TARGETS ${PROJECT_NAME} CONFIGURATIONS Debug RELEASE DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)

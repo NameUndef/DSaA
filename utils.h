@@ -14,4 +14,7 @@ uint64_t flip_u64_bits(uint64_t value, unsigned int size);
 
 void clear_stdin_buffer();
 
+size_t get_0_bits_count_before_1(size_t value);
+size_t ceil_to_power_of_2(size_t value);
+
 #endif  // INCLUDE_UTILS_H

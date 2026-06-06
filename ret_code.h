@@ -13,6 +13,7 @@ typedef enum {
     ALREADY_FREE,
     FULL_BUFFER,
     EMPTY_BUFFER,
+    NOT_FOUND,
     RET_CODE_SIZE
 } Errors;
 

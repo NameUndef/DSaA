@@ -9,18 +9,6 @@
 #define BITMAP_ELEMENT_SIZE 64ULL
 #define BITMAP_ELEMENT_BYTES 8ULL
 
-static size_t get_0_bits_count_before_1(size_t value)
-{
-    size_t count = 0;
-    for (count = 0; count < sizeof(value) << 3ULL; count++) {
-        if ((value >> count) & 1ULL) {
-            break;
-        }
-    }
-
-    return count;
-}
-
 void print_bitmaps(PageAllocator *obj)
 {
     for (size_t i = 0; i < obj->cur_nodes_count_in_page; i++) {

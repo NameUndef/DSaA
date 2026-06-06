@@ -82,3 +82,29 @@ void clear_stdin_buffer()
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
 }
+
+size_t get_0_bits_count_before_1(size_t value)
+{
+    size_t count = 0;
+    for (count = 0; count < sizeof(value) << 3ULL; count++) {
+        if ((value >> count) & 1ULL) {
+            break;
+        }
+    }
+
+    return count;
+}
+
+size_t ceil_to_power_of_2(size_t value)
+{
+    value--;
+    value |= value >> 1;
+    value |= value >> 2;
+    value |= value >> 4;
+    value |= value >> 8;
+    value |= value >> 16;
+    value |= value >> 32;
+    value++;
+
+    return value;
+}

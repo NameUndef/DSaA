@@ -11,7 +11,8 @@ static char ret_code_str[RET_CODE_SIZE][RC_STR_SIZE] = {
    "BAD_ARGUMENT_NOT_POWER_OF_2",
    "ALREADY_FREE",
    "FULL_BUFFER",
-   "EMPTY_BUFFER"
+   "EMPTY_BUFFER",
+   "NOT_FOUND"
 };
 
 const char * const RetCode_get_str(Errors code)
