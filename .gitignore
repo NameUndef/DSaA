@@ -2,3 +2,5 @@ out/
 bin/
 lib/
 CMakePresets.json
+build/
+*.zip
