@@ -1,0 +1,127 @@
+[
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/DSAA.dir/main.c.o -c /home/ilya/DSaA/main.c",
+  "file": "/home/ilya/DSaA/main.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/RetCode.dir/ret_code.c.o -c /home/ilya/DSaA/ret_code.c",
+  "file": "/home/ilya/DSaA/ret_code.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/Utils.dir/utils.c.o -c /home/ilya/DSaA/utils.c",
+  "file": "/home/ilya/DSaA/utils.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/PageManage.dir/page_manage.c.o -c /home/ilya/DSaA/page_manage.c",
+  "file": "/home/ilya/DSaA/page_manage.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/Alignment.dir/alignment.c.o -c /home/ilya/DSaA/alignment.c",
+  "file": "/home/ilya/DSaA/alignment.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/MemDemoMap.dir/mem_demo_map.c.o -c /home/ilya/DSaA/mem_demo_map.c",
+  "file": "/home/ilya/DSaA/mem_demo_map.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/RingBuffer.dir/ring_buffer.c.o -c /home/ilya/DSaA/ring_buffer.c",
+  "file": "/home/ilya/DSaA/ring_buffer.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/RingBuffer.dir/ring_buffer_demo.c.o -c /home/ilya/DSaA/ring_buffer_demo.c",
+  "file": "/home/ilya/DSaA/ring_buffer_demo.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/PortalQueue.dir/portal_queue.c.o -c /home/ilya/DSaA/portal_queue.c",
+  "file": "/home/ilya/DSaA/portal_queue.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/PortalQueue.dir/portal_queue_demo.c.o -c /home/ilya/DSaA/portal_queue_demo.c",
+  "file": "/home/ilya/DSaA/portal_queue_demo.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/ArenaAllocator.dir/arena_allocator.c.o -c /home/ilya/DSaA/arena_allocator.c",
+  "file": "/home/ilya/DSaA/arena_allocator.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/ArenaAllocator.dir/arena_allocator_demo.c.o -c /home/ilya/DSaA/arena_allocator_demo.c",
+  "file": "/home/ilya/DSaA/arena_allocator_demo.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/PoolAllocator.dir/pool_allocator.c.o -c /home/ilya/DSaA/pool_allocator.c",
+  "file": "/home/ilya/DSaA/pool_allocator.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/PoolAllocator.dir/pool_allocator_demo.c.o -c /home/ilya/DSaA/pool_allocator_demo.c",
+  "file": "/home/ilya/DSaA/pool_allocator_demo.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/PageAllocator.dir/page_allocator.c.o -c /home/ilya/DSaA/page_allocator.c",
+  "file": "/home/ilya/DSaA/page_allocator.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/PageAllocator.dir/page_allocator_demo.c.o -c /home/ilya/DSaA/page_allocator_demo.c",
+  "file": "/home/ilya/DSaA/page_allocator_demo.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/SlabAllocator.dir/slab_allocator.c.o -c /home/ilya/DSaA/slab_allocator.c",
+  "file": "/home/ilya/DSaA/slab_allocator.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/SlabAllocator.dir/slab_allocator_demo.c.o -c /home/ilya/DSaA/slab_allocator_demo.c",
+  "file": "/home/ilya/DSaA/slab_allocator_demo.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/HuffmanEncoding.dir/huffman_encoding.c.o -c /home/ilya/DSaA/huffman_encoding.c",
+  "file": "/home/ilya/DSaA/huffman_encoding.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/HuffmanEncoding.dir/huffman_encoding_demo.c.o -c /home/ilya/DSaA/huffman_encoding_demo.c",
+  "file": "/home/ilya/DSaA/huffman_encoding_demo.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/PrioritiesQueue.dir/priorities_queue.c.o -c /home/ilya/DSaA/priorities_queue.c",
+  "file": "/home/ilya/DSaA/priorities_queue.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/PrioritiesQueue.dir/priorities_queue_demo.c.o -c /home/ilya/DSaA/priorities_queue_demo.c",
+  "file": "/home/ilya/DSaA/priorities_queue_demo.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/HashMap.dir/hash_map.c.o -c /home/ilya/DSaA/hash_map.c",
+  "file": "/home/ilya/DSaA/hash_map.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/HashMap.dir/hash_map_demo.c.o -c /home/ilya/DSaA/hash_map_demo.c",
+  "file": "/home/ilya/DSaA/hash_map_demo.c"
+},
+{
+  "directory": "/home/ilya/DSaA/build",
+  "command": "/usr/bin/gcc-12 -g -o CMakeFiles/BuddyAllocator.dir/buddy_allocator.c.o -c /home/ilya/DSaA/buddy_allocator.c",
+  "file": "/home/ilya/DSaA/buddy_allocator.c"
+}
+]

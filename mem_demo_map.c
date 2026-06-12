@@ -72,7 +72,7 @@ void MemMapDemo_allocate_dialogue(MemMapDemo* dest)
         for (size_t i = 0; i < node->count; i++) {
             node->ptr[i] = dest->allocate(dest->allocator_dest);
             if (!node->ptr[i]) {
-                printf("have failed allocate at %d\n", i);
+                printf("have failed allocate at %zu\n", i);
             }
         }
     }

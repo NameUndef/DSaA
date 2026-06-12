@@ -15,6 +15,7 @@ typedef struct {
     BuddyNode* nodes_tree;
     size_t nodes_count;
     size_t minimum_alloc_size;
+    uint8_t data_size_shift;
 } BuddyAllocator;
 
 int BuddyAllocator_init(BuddyAllocator *obj, size_t size, size_t minimum_alloc_size);

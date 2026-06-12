@@ -1,6 +1,8 @@
 #include "ring_buffer.h"
 #include "ret_code.h"
+
 #include <stdio.h>
+#include <inttypes.h> 
 
 void RingBuffer_demo()
 {
@@ -49,7 +51,7 @@ void RingBuffer_demo()
 
             case 1: {
                 printf("type value:\n");
-                scanf("%d", &value);
+                scanf("%" SCNu8, &value);
                 break;
             }
 

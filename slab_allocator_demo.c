@@ -21,11 +21,11 @@ static void SlabAllocator_print_slab_list(Slab* list)
 
 static void SlabAllocator_print_info(SlabAllocator* dest) 
 {
-    printf("object count: %d\n"
-        "object size: %d\n"
-        "object alignment: %d\n"
-        "aligned object size: %d\n"
-        "first object padding: %d\n\n",
+    printf("object count: %zu\n"
+        "object size: %zu\n"
+        "object alignment: %zu\n"
+        "aligned object size: %zu\n"
+        "first object padding: %zu\n\n",
         dest->object_count, dest->object_size, dest->object_alignment, dest->aligned_object_size, dest->first_object_padding);
 
     printf("empty slabs:\n");

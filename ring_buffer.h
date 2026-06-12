@@ -4,6 +4,7 @@
 #include "ret_code.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 typedef struct {
     uint8_t* buffer;

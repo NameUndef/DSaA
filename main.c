@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <stddef.h.>
-
 #include "ring_buffer_demo.h"
 #include "portal_queue_demo.h"
 #include "arena_allocator_demo.h"
@@ -11,6 +7,10 @@
 #include "huffman_encoding_demo.h"
 #include "priorities_queue_demo.h"
 #include "hash_map_demo.h"
+
+#include <stdio.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 typedef void(*demo_func)(void);
 

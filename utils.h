@@ -2,6 +2,7 @@
 #define INCLUDE_UTILS_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 void print_u8_bits(uint8_t value);
 void print_u16_bits(uint16_t value);
