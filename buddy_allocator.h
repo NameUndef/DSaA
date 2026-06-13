@@ -2,20 +2,21 @@
 #define INCLUDE_BUDDY_ALLOCATOR
 
 #include <stddef.h>
-#include <stdint.h>
 #include <stdbool.h>
 
+typedef unsigned char shift_t;
+
 typedef struct {
-    char max_size_shift;
+    shift_t max_size_shift;
 } BuddyNode;
 
 typedef struct {
-    uint8_t* data;
+    char* data;
     size_t data_size;
     BuddyNode* nodes_tree;
     size_t nodes_count;
     size_t minimum_alloc_size;
-    uint8_t data_size_shift;
+    shift_t data_size_shift;
 } BuddyAllocator;
 
 int BuddyAllocator_init(BuddyAllocator *obj, size_t size, size_t minimum_alloc_size);

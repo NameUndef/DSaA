@@ -32,8 +32,9 @@
         VirtualFree(page, 0, MEM_RELEASE);
     }
 
-    void free_page_sz(void* page, size_t)
+    void free_page_sz(void* page, size_t page_size)
     {
+        (void)page_size;
         VirtualFree(page, 0, MEM_RELEASE);
     }
 

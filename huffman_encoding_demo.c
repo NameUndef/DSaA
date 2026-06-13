@@ -14,7 +14,7 @@ void HuffmanEncoding_demo()
     DecodeArray decodes;
     
     char decoded_str[DEC_CAPACITY] = {0};
-    char encoded_data[ENC_CAPACITY] = {0};
+    code_t encoded_data[ENC_CAPACITY] = {0};
     unsigned int enc_data_len = 0;
     unsigned int last_byte_len = 0;
     unsigned int dec_data_len = 0;

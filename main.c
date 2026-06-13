@@ -7,6 +7,7 @@
 #include "huffman_encoding_demo.h"
 #include "priorities_queue_demo.h"
 #include "hash_map_demo.h"
+#include "buddy_allocator_demo.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -21,6 +22,9 @@ typedef struct {
 
 int main(int argc, char* argv[])
 {
+    (void) argc;
+    (void) argv;
+    
     Demo demos[] = {
         {RingBuffer_demo, "RingBuffer"},
         {PortalQueue_demo, "PortalQueue"},
@@ -30,7 +34,8 @@ int main(int argc, char* argv[])
         {SlabAllocator_demo, "SlabAllocator"},
         {HuffmanEncoding_demo, "HuffmanEncoding"},
         {PrioritiesQueue_demo, "PrioritiesQueue"},
-        {HashMap_demo, "HashMap"}
+        {HashMap_demo, "HashMap"},
+        {BuddyAllocator_demo, "BuddyAllocator"}
     };
 
     size_t demos_size = sizeof (demos) / sizeof (demos[0]);
@@ -51,7 +56,7 @@ int main(int argc, char* argv[])
 
         if (!command) {
             break;
-        } else if (command > demos_size || command <= -1) {
+        } else if (command <= -1 || (unsigned int) command > demos_size) {
             printf("unknown command\n");
             continue;
         }

@@ -33,7 +33,7 @@ void MemMapDemo_deinit(MemMapDemo* dest)
     }
 }
 
-void MemMapDemo_allocate_dialogue(MemMapDemo* dest)
+void MemMapDemo_allocate_dialogue(MemMapDemo* dest, bool ask_size)
 {
     AllocatedAddress* node = (void*) malloc(sizeof(AllocatedAddress));
     if (!node) {
@@ -41,6 +41,12 @@ void MemMapDemo_allocate_dialogue(MemMapDemo* dest)
         return;
     }
     printf("Allocate\n");
+    size_t alloc_size = 0;
+    if (ask_size) {
+        printf("size:\n");
+        scanf("%zu", &alloc_size);
+    }
+
     printf("type name:\n");
     clear_stdin_buffer();
     if (fgets(node->name, sizeof(node->name), stdin) == NULL) {
@@ -55,10 +61,8 @@ void MemMapDemo_allocate_dialogue(MemMapDemo* dest)
     printf("type count:\n");
     scanf("%zu", &node->count);
 
-    bool have_error = false;
-
     if (node->count == 1) {
-        node->ptr = (void**) dest->allocate(dest->allocator_dest);
+        node->ptr = (void**) dest->allocate(dest->allocator_dest, alloc_size);
         if (!node->ptr) {
             printf("have failed allocate\n");
         }
@@ -70,7 +74,7 @@ void MemMapDemo_allocate_dialogue(MemMapDemo* dest)
             return;
         }
         for (size_t i = 0; i < node->count; i++) {
-            node->ptr[i] = dest->allocate(dest->allocator_dest);
+            node->ptr[i] = dest->allocate(dest->allocator_dest, alloc_size);
             if (!node->ptr[i]) {
                 printf("have failed allocate at %zu\n", i);
             }
@@ -108,7 +112,7 @@ void MemMapDemo_free_dialogue(MemMapDemo* dest)
 
             find_name = true;
             if (node->count == 1) {
-                printf("free addr: %p\n", node->ptr);
+                printf("free addr: %p\n", (void*) node->ptr);
                 dest->free(dest->allocator_dest, (void*) node->ptr);
             } else {
                 for (size_t i = 0; i < node->count; i++) {
@@ -149,7 +153,7 @@ void MemMapDemo_list(MemMapDemo* dest)
     while (allocated_node) {
         printf("node: %s, count: %zu\n", allocated_node->name, allocated_node->count);
         if (allocated_node->count == 1) {
-            printf("    addr: %p\n", allocated_node->ptr);
+            printf("    addr: %p\n", (void*) allocated_node->ptr);
         } else {
             for (size_t i = 0; i < allocated_node->count; i++) {
                 printf("    addr: %p\n", allocated_node->ptr[i]);

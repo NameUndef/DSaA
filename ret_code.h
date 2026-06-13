@@ -19,6 +19,6 @@ typedef enum {
 
 #define RC_STR_SIZE 30
 
-const char * const RetCode_get_str(Errors err);
+const char * RetCode_get_str(Errors err);
 
 #endif  // INCLUDE_RET_CODE_H

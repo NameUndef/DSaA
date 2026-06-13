@@ -187,8 +187,8 @@ static void fill_codes_array(DirTreeNode *root, EncodeArray *encodes)
 {
     if (!root->left) {
         encodes->count = 1;
-        encodes->array[root->data][1] = 1;
-        encodes->array[root->data][0] = 0;
+        encodes->array[(unsigned int) root->data][1] = 1;
+        encodes->array[(unsigned int) root->data][0] = 0;
         return;
     }
 
@@ -197,7 +197,6 @@ static void fill_codes_array(DirTreeNode *root, EncodeArray *encodes)
 
     DirTreeNode* stack[STACK_SIZE];
     unsigned int stack_size = 0;
-    unsigned int stack_pos = 0;
     unsigned int code = 0;
     
     stack[stack_size] = root;
@@ -244,12 +243,12 @@ static void fill_codes_array(DirTreeNode *root, EncodeArray *encodes)
             stack[stack_size] = next->left;
             stack_size++;
         } else {
-            encodes->array[next->data][1] = stack_pos;
-            encodes->array[next->data][0] = code >> 1;
+            encodes->array[(unsigned int) next->data][1] = stack_pos;
+            encodes->array[(unsigned int) next->data][0] = code >> 1;
             encodes->count++;
             stack_size--;
 
-            encodes->max_code_lengh = encodes->max_code_lengh < stack_pos? stack_pos : encodes->max_code_lengh;
+            encodes->max_code_lengh = encodes->max_code_lengh < (char) stack_pos? (char) stack_pos : encodes->max_code_lengh;
         }
     }
 }
@@ -274,14 +273,14 @@ static int encode_data(
 
     for (unsigned int i = 0; i < data_size; i++) {
 
-        code_t code = array->array[data[i]][0];
-        char code_size = array->array[data[i]][1];
+        code_t code = array->array[(unsigned int) data[i]][0];
+        char code_size = array->array[(unsigned int) data[i]][1];
 
         if (!code_size) {
             return -2;
         }
 
-        if (CODE_SIZE - cur_encode_buffer_pos < code_size) {
+        if (CODE_SIZE - (char) cur_encode_buffer_pos < code_size) {
 
             low_half = CODE_SIZE - cur_encode_buffer_pos;
             high_half = code_size - low_half;
@@ -347,9 +346,7 @@ void huffman_encode(
     unsigned int *last_byte_len,
     EncodeArray *encodes,
     DecodeArray *decodes)
-{
-    unsigned int cur_str = 0;
-    
+{   
     FreqArray freq_data;
     
     unsigned int str_size = fill_freq_array(decoded_str, &freq_data);
@@ -507,7 +504,7 @@ int huffman_decode(
         j++;
     }
 
-    for (; j < decoded_data_capacity - 1 && cur_bit_pos != encoded_data_last_byte_length; j++) {
+    for (; j < decoded_data_capacity - 1 && cur_bit_pos != (char) encoded_data_last_byte_length; j++) {
 
         if (decode(encoded_data[encoded_data_length - 1], 0, code_mask, &cur_bit_pos, &decoded_data[j], &next_encode, decodes)) {
             return -1;
@@ -516,4 +513,5 @@ int huffman_decode(
     }
 
     *decoded_size = j;
+    return 0;
 }

@@ -4,7 +4,7 @@
 
 static void ArenaAllocator_print_info(ArenaAllocator* dest)
 {
-    printf("size: %d\noffset: %d\n", dest->capacity, dest->offset);
+    printf("size: %zu\noffset: %zu\n", dest->capacity, dest->offset);
 
     for (size_t i = 0; i < dest->offset; i++) {
         printf("%03d|", dest->data[i]);

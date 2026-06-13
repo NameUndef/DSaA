@@ -16,7 +16,7 @@ void print_bitmaps(PageAllocator *obj)
         
         printf("address: %p\n", header->chunk_address);
         for (size_t bitmap = 0; bitmap < obj->bitmap_array_size; bitmap++) {
-            printf("%p: ", &header->use_bitmap[bitmap]);
+            printf("%p: ", (void*) &header->use_bitmap[bitmap]);
             print_u64_bits(header->use_bitmap[bitmap]);
         }
     }
@@ -305,11 +305,11 @@ static void* PA_allocate_page_from_chunk(PageAllocator* obj, PA_ChunkHeader* hea
     // printf("%p: ", &header->use_bitmap[i]);
     // print_u64_bits(header->use_bitmap[i]);
     size_t page_idx = i * BITMAP_ELEMENT_SIZE + bit_idx;
-    return header->chunk_address + (page_idx * obj->page_size);
+    return (void*) ((uint8_t*) header->chunk_address + (page_idx * obj->page_size));
 }
 
 
-static void PA_move_first_chunk_to_first(PageAllocator* obj, PA_ChunkHeader** chunk_list_src, PA_ChunkHeader** list_dest) 
+static void PA_move_first_chunk_to_first(PA_ChunkHeader** chunk_list_src, PA_ChunkHeader** list_dest) 
 {
     PA_ChunkHeader* header = *chunk_list_src;
     if (header->next) {
@@ -355,9 +355,9 @@ void* PageAllocator_allocate_rc(PageAllocator* obj, int *ret_code)
     void* data = PA_allocate_page_from_chunk(obj, header);
 
     if (header->used == obj->chunk_page_count) {
-        PA_move_first_chunk_to_first(obj, header_list, &obj->full);
+        PA_move_first_chunk_to_first(header_list, &obj->full);
     } else if (header->used == 1) {
-        PA_move_first_chunk_to_first(obj, header_list, &obj->partial);
+        PA_move_first_chunk_to_first(header_list, &obj->partial);
     }
 
     return data;
@@ -371,7 +371,8 @@ void* PageAllocator_allocate(PageAllocator* obj)
 static PA_ChunkHeaderNode* find_chunk_with_address_in_range(PageAllocator* obj, void* address)
 {
     // сначала проверяем последний найденный чанк
-    if (obj->last && address >= obj->last->chunk_address && address < obj->last->chunk_address + obj->chunk_size) {
+
+    if (obj->last && (uint8_t*) address >= (uint8_t*) obj->last->chunk_address && (uint8_t*) address < (uint8_t*) obj->last->chunk_address + obj->chunk_size) {
         return obj->last;
     }
 
@@ -384,7 +385,7 @@ static PA_ChunkHeaderNode* find_chunk_with_address_in_range(PageAllocator* obj, 
 
         for (size_t i = 0; i < nodes_count; i++) {
 
-            if (address >= page->nodes[i].chunk_address && address < page->nodes[i].chunk_address + obj->chunk_size) {
+            if (address >= page->nodes[i].chunk_address && (uint8_t*) address < (uint8_t*) page->nodes[i].chunk_address + obj->chunk_size) {
                 tagret_node = page->nodes + i;
                 break;
             }
@@ -406,7 +407,7 @@ static PA_ChunkHeaderNode* find_chunk_with_address_in_range(PageAllocator* obj, 
 static bool PA_free_page_from_chunk(PageAllocator* obj, PA_ChunkHeader* header, void* page)
 {
     // адрес должен быть проверен и находиться в рамках чанка
-    uintptr_t page_idx = (uintptr_t) (page - header->chunk_address) >> obj->page_zero_bits_count;
+    uintptr_t page_idx = (uintptr_t) ((uint8_t*) page - (uint8_t*) header->chunk_address) >> obj->page_zero_bits_count;
     size_t bitmap_idx = page_idx / BITMAP_ELEMENT_SIZE;
     size_t bit_idx = page_idx % BITMAP_ELEMENT_SIZE;
 

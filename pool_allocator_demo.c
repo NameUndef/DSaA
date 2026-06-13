@@ -3,8 +3,9 @@
 #include "mem_demo_map.h"
 #include <stdio.h>
 
-static void* allocate_f(void* dest)
+static void* allocate_f(void* dest, size_t size)
 {
+    (void)size;
     return PoolAllocator_allocate((PoolAllocator*) dest);
 }
 
@@ -71,7 +72,7 @@ void PoolAllocator_demo(void)
             }
 
             case 1: {
-                MemMapDemo_allocate_dialogue(&allocated_addresses_demo);
+                MemMapDemo_allocate_dialogue(&allocated_addresses_demo, false);
                 break;
             }
 

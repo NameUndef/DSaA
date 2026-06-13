@@ -15,7 +15,7 @@ static char ret_code_str[RET_CODE_SIZE][RC_STR_SIZE] = {
    "NOT_FOUND"
 };
 
-const char * const RetCode_get_str(Errors code)
+const char * RetCode_get_str(Errors code)
 {
     return ret_code_str[code];
 }

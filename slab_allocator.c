@@ -25,7 +25,7 @@ static Errors SA_add_slab(SlabAllocator *dest)
         current = next;
     }
 
-    memset(current, 0, sizeof(uint8_t*));
+    memset(current, 0, sizeof(void*));
 
     slab->used = 0;
 
@@ -165,7 +165,7 @@ Errors SlabAllocator_deinit(SlabAllocator *dest)
     return OK;
 }
 
-static void* SA_allocate_from_slab(SlabAllocator *dest, Slab* slab)
+static void* SA_allocate_from_slab(Slab* slab)
 {
     // берем первый свободный объект
     uint8_t* object = slab->free_list;
@@ -177,7 +177,7 @@ static void* SA_allocate_from_slab(SlabAllocator *dest, Slab* slab)
     return (void*)object;
 }
 
-static void SA_move_first_slab_to_first(SlabAllocator *dest, Slab** slab_list_src, Slab** slab_list_dest)
+static void SA_move_first_slab_to_first(Slab** slab_list_src, Slab** slab_list_dest)
 {
     Slab* slab = *slab_list_src;
 
@@ -220,12 +220,12 @@ void* SlabAllocator_allocate(SlabAllocator *dest)
     }
 
     Slab* slab = *slab_list_ptr;
-    void* data = SA_allocate_from_slab(dest, slab);
+    void* data = SA_allocate_from_slab(slab);
 
     if (slab->used == dest->object_count) {
-        SA_move_first_slab_to_first(dest, slab_list_ptr, &dest->full);
+        SA_move_first_slab_to_first(slab_list_ptr, &dest->full);
     } else if (slab->used == 1) {
-        SA_move_first_slab_to_first(dest, slab_list_ptr, &dest->partial);
+        SA_move_first_slab_to_first(slab_list_ptr, &dest->partial);
     }
 
     return data;

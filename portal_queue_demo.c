@@ -3,7 +3,7 @@
 
 static void PortalQueue_print_info(PortalQueue* dest)
 {
-    printf("Segment capacity: %d\nis full: %d\nis empty: %d\nhave portal: %d\n", 
+    printf("Segment capacity: %zu\nis full: %d\nis empty: %d\nhave portal: %d\n", 
         dest->segment_capacity, PortalQueue_is_full(dest), PortalQueue_is_empty(dest), dest->segment_portal_src != NULL);
     Segment* segment_end, *segment;
     segment = segment_end = dest->used_segments_ring;
@@ -126,7 +126,12 @@ void PortalQueue_demo()
 
             case 1: {
                 printf("type value:\n");
-                scanf("%d", &value);
+                int read_value = 0;
+                value = 0;
+                scanf("%d", &read_value);
+                if (read_value < 256) {
+                    value = (uint8_t) read_value;
+                }
                 break;
             }
 

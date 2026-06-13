@@ -86,11 +86,13 @@ target_link_libraries(HashMap PRIVATE
     Utils)
 
 add_library(BuddyAllocator STATIC
-    buddy_allocator.c)
+    buddy_allocator.c
+    buddy_allocator_demo.c)
 
 target_link_libraries(BuddyAllocator PRIVATE
     Utils
-    Alignment)
+    Alignment
+    PageManage)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     RingBuffer 
@@ -101,6 +103,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     SlabAllocator
     HuffmanEncoding
     PrioritiesQueue
-    HashMap)
+    HashMap
+    BuddyAllocator)
 
 install(TARGETS ${PROJECT_NAME} CONFIGURATIONS Debug RELEASE DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)

@@ -1,0 +1,6 @@
+#ifndef INCLUDE_BUDDY_ALLOCATOR_DEMO_H
+#define INCLUDE_BUDDY_ALLOCATOR_DEMO_H
+
+void BuddyAllocator_demo(void);
+
+#endif  // INCLUDE_BUDDY_ALLOCATOR_DEMO_H

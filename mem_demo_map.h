@@ -3,6 +3,7 @@
 
 #include "ret_code.h"
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct _AllocatedAddress {
 
@@ -14,7 +15,7 @@ typedef struct _AllocatedAddress {
 
 } AllocatedAddress;
 
-typedef void*   (*allocate_func) (void* dest);
+typedef void*   (*allocate_func) (void* dest, size_t size);
 typedef Errors  (*free_func)     (void* dest, void* address);
 
 typedef struct {
@@ -26,7 +27,7 @@ typedef struct {
 
 void MemMapDemo_init(MemMapDemo* dest, void* allocator_dest, allocate_func allocate, free_func free);
 void MemMapDemo_deinit(MemMapDemo* dest);
-void MemMapDemo_allocate_dialogue(MemMapDemo* dest);
+void MemMapDemo_allocate_dialogue(MemMapDemo* dest, bool ask_size);
 void MemMapDemo_free_dialogue(MemMapDemo* dest);
 void MemMapDemo_list(MemMapDemo* dest);
 
