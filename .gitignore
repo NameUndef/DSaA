@@ -3,5 +3,5 @@ bin/
 lib/
 CMakePresets.json
 build/
-./vscode/
+.vscode/
 *.zip
